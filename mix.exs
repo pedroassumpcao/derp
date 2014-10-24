@@ -3,8 +3,8 @@ defmodule Derp.Mixfile do
 
   def project do
     [ app: :derp,
-      version: "0.0.1",
-      elixir: "~> 0.13.2-dev",
+      version: "0.1.0",
+      elixir: "1.0.0",
       deps: deps ]
   end
 

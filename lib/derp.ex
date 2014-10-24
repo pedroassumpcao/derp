@@ -1,5 +1,5 @@
 defmodule Derp do
-  use Application.Behaviour
+  use Application
 
   def start(_, _) do
     :error_logger.delete_report_handler :error_logger_tty_h

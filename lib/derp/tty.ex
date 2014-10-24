@@ -1,13 +1,13 @@
 defmodule Derp.TTY do
   import Kernel, except: [inspect: 1]
 
-  use GenEvent.Behaviour
+  use GenEvent
 
   defp inspect(value) do
     try do
       Kernel.inspect(value, pretty: true)
     rescue _ ->
-      :io_lib.format('~p', [value]) |> String.from_char_data!
+      :io_lib.format('~p', [value]) |> List.to_string
     end
   end
 
@@ -22,7 +22,7 @@ defmodule Derp.TTY do
   end
 
   def pid(name) when name |> is_atom do
-    case atom_to_binary(name) do
+    case Atom.to_string(name) do
       "Elixir." <> name ->
         name
 
@@ -34,10 +34,10 @@ defmodule Derp.TTY do
   def pid(name) when name |> is_list do
     case name do
       'Elixir.' ++ name ->
-        name |> String.from_char_data!
+        name |> List.to_string
 
       name ->
-        name |> String.from_char_data!
+        name |> List.to_string
     end
   end
 
@@ -50,7 +50,7 @@ defmodule Derp.TTY do
   end
 
   defp pad(n) when n < 10, do: "0#{n}"
-  defp pad(n),             do: integer_to_binary(n)
+  defp pad(n),             do: Integer.to_string(n)
 
   defp date do
     case :calendar.now_to_local_time(:erlang.now) do
@@ -62,7 +62,7 @@ defmodule Derp.TTY do
   defp print(leader, color, header, format, data) do
     report = :io_lib.format(format, data)
 
-    IO.puts leader, IO.ANSI.escape("%{#{color}}" <> header <> String.from_char_data!(report), leader)
+    IO.puts leader, IO.ANSI.escape("%{#{color}}" <> header <> List.to_string(report), leader)
   end
 
   defp print(leader, color, header, report) do
@@ -96,7 +96,7 @@ defmodule Derp.TTY do
   @gen_server "** Generic server ~p terminating \n" <>
               "** Last message in was ~p~n" <>
               "** When Server state == ~p~n" <>
-              "** Reason for termination == ~n** ~p~n" |> List.from_char_data!
+              "** Reason for termination == ~n** ~p~n" |> String.to_char_list
 
   def handle_event({ :error, leader, { _pid, @gen_server, data } }, _state) do
     print :gen_server, leader, data
@@ -108,7 +108,7 @@ defmodule Derp.TTY do
              "** Was installed in ~p~n" <>
              "** Last event was: ~p~n" <>
              "** When handler state == ~p~n" <>
-             "** Reason == ~p~n" |> List.from_char_data!
+             "** Reason == ~p~n" |> String.to_char_list
 
   def handle_event({ :error, leader, { _pid, @gen_event, data } }, _state) do
     print :gen_event, leader, data
@@ -119,10 +119,10 @@ defmodule Derp.TTY do
   def handle_event({ :error, leader, { pid, '~s~n', [error] } }, _state) do
     case error do
       'Error in process <' ++ _ ->
-        [_, pid]   = Regex.run ~r/<(.*?)>/, String.from_char_data!(error)
-        [_, value] = Regex.run ~r/exit value: (.*)$/, String.from_char_data!(error)
+        [_, pid]   = Regex.run ~r/<(.*?)>/, List.to_string(error)
+        [_, value] = Regex.run ~r/exit value: (.*)$/, List.to_string(error)
 
-        print leader, :red, header("Error from #PID<#{pid}>"), String.from_char_data!(value)
+        print leader, :red, header("Error from #PID<#{pid}>"), List.to_string(value)
 
       _ ->
         print leader, :red, header("Error", pid), '~s~n', [error]
